@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import re
 
 # ===========================================
 # FUNCIONES: PARSING DE ECUACIONES
@@ -240,6 +239,25 @@ def DiferFinitaCentrada2(f, x0, h):
     return df
 
 def DiferFinitaProgresiva(f, x0, h):
+    """
+    Función que calcula la derivada de una función "f" en el punto "x0" utlizando
+    una diferencia finita progresiva.
+
+    Parameters
+    ----------
+    f : fun
+        Función unidimensional a derivar numéricamente.
+    x0 : float
+        Punto sobre el que se evaluará la derivada numérica.
+    h : float
+        Valor que determina la precisión con la que se realizará la aproximación
+        de la derivada. Mientras más pequeño, mayor precisión.
+
+    Returns
+    -------
+    df : float
+        Aproximación numérica de la derivada de la función unidimensional.
+    """
 
     f_x  = f(x0)
     f_h  = f(x0 + h)
@@ -296,6 +314,11 @@ def SolverNewton(F, x0, k_max, epsilon):
         # Se calcula la derivada de la función en el punto xk
         dF = DiferFinitaCentrada2(F, xk, 0.00001)
 
+        # Para evitar divisiones entre 0, si la derivada es igual a cero se 
+        # reemplaza por un valor muy muy pequeño
+        if dF == 0:
+            dF = 0.000000001
+
         # Se actualiza xk
         xk = xk - (F(xk) / dF)
 
@@ -311,7 +334,8 @@ def SolverNewton(F, x0, k_max, epsilon):
 def SolverBiseccion(F, lim_inf, lim_sup, k_max, epsilon):
     """ 
     Función para obtener los puntos estacionarios de una función F(x) = 0 a través del 
-    método de Bisección
+    método de Bisección. Si, dadas las condiciones iniciales proporcionadas, se determina
+    que el problema divergerá, se retorna una excepción.
 
     ...
 
@@ -373,68 +397,3 @@ def SolverBiseccion(F, lim_inf, lim_sup, k_max, epsilon):
         df = df.append({"Iter": k, "Xk": xk, "Error": np.abs(F(xk))}, ignore_index=True)
 
     return xk, df
-
-#Evaluación REGREX
-def evaluate_Fx(str_equ, valX):
-  x = valX
-  #strOut = str_equ
-  strOut = str_equ.replace("x", '*(x)')
-  strOut = strOut.replace("^", "**")
-  out = eval(strOut)
-  print(strOut)
-  return out
-
-#Deferencias finitas para derivadas
-def evaluate_derivate_fx(str_equ, x, h):
-  strOut = str_equ.replace("x", '*(x + h)')
-  strOut = strOut.replace("^", "**")
-  strOut = "-4*(" + strOut + ")"
-  out = eval(strOut)
-  
-  strOut = str_equ.replace("x", '*(x + 2*h)')
-  strOut = strOut.replace("^", "**")
-  out = out + eval(strOut)
-  
-  strOut = str_equ.replace("x", '*(x)')
-  strOut = strOut.replace("^", "**")
-  strOut = "3*(" + strOut + ")"
-  out = out + eval(strOut)
-  
-  out = -out/(2*h)
-  print(out)
-  return out
-
-#Resolverdor de Newton
-def newtonSolverX(x0, f_x, eps):
-  x0 = float(x0)
-  eps = float(eps)
-  xn = x0
-  error = 1
-  arrayIters = []
-  arrayF_x = []
-  arrayf_x = []
-  arrayXn = []
-  arrayErr = []
-  
-  i = 0
-  h = 0.000001
-  while(error > eps):
-    print("...")
-    x_n1 = xn - (evaluate_Fx(f_x, xn)/evaluate_derivate_fx(f_x, xn, h))
-    error = abs(x_n1 - xn)
-    i = i + 1
-    xn = x_n1
-    arrayIters.append(i)
-    arrayXn.append(xn)
-    arrayErr.append(error)
-    solution = [i, xn, error]
-
-  print("Finalizo...")
-  TableOut = pandas.DataFrame({'Iter':arrayIters, 'Xn':arrayXn, 'Error': arrayErr})
-  return TableOut
-
-def add(a, b):
-  a = int(a)
-  b = int(b)
-  resultado = a + b
-  return "El resultado es: " + str(resultado)
